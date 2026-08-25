@@ -44,7 +44,8 @@ data:
   additionalPropertiesMap: {}
   accessControl: NONE
   accessControlRoles: []
-  businessInformation: {}
+  businessInformation:
+    businessOwner: John Doe
   corsConfiguration:
     corsConfigurationEnabled: false
     accessControlAllowOrigins:
