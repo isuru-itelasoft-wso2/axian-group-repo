@@ -5,9 +5,23 @@ pipeline {
     environment {
         APIM_ENV = "group"
         API_PROJECT = "GroupSubscriberAPI"
+        APICTL_HOME = "/opt/wso2/apictl"
+        PATH = "/opt/wso2/apictl:${env.PATH}"
     }
 
     stages {
+
+        stage('Check APICTL') {
+            steps {
+                sh '''
+                    echo "APICTL_HOME=$APICTL_HOME"
+                    echo "PATH=$PATH"
+
+                    which apictl
+                    apictl version
+                '''
+            }
+        }
 
         stage('Checkout') {
             steps {
