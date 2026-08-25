@@ -67,16 +67,39 @@ pipeline {
 
         stage('Governance Gate') {
             steps {
+                script {
 
-                sh '''
-                    echo "Running Governance Validation..."
+                    def governanceOutput = sh(
+                        script: '''
+                            set +e
 
-                    apictl import api \
-                        --file ${API_PROJECT} \
-                        --environment ${APIM_ENV} \
-                        --dry-run \
-                        --insecure
-                '''
+                            apictl import api \
+                                --file "${API_PROJECT}" \
+                                --environment "${APIM_ENV}" \
+                                --dry-run \
+                                --insecure
+
+                            exit 0
+                        ''',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "========== GOVERNANCE RESULT =========="
+                    echo governanceOutput
+                    echo "======================================="
+
+                    def errorCount = governanceOutput.count("ERROR")
+
+                    echo "Governance ERROR count: ${errorCount}"
+
+                    if (errorCount > 0) {
+                        error(
+                            "GOVERNANCE GATE FAILED: ${errorCount} governance ERROR violation(s) found. API deployment blocked."
+                        )
+                    }
+
+                    echo "Governance validation PASSED."
+                }
             }
         }
 
@@ -97,13 +120,17 @@ pipeline {
     }
 
     post {
-
         success {
-            echo "API deployed successfully."
+            echo "========================================"
+            echo "API GOVERNANCE PASSED"
+            echo "API DEPLOYMENT COMPLETED"
+            echo "========================================"
         }
-
         failure {
-            echo "Governance failed. Deployment blocked."
+            echo "========================================"
+            echo "API GOVERNANCE FAILED"
+            echo "API DEPLOYMENT WAS BLOCKED"
+            echo "========================================"
         }
     }
 }
