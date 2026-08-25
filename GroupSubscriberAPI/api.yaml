@@ -5,7 +5,7 @@ data:
   name: GROUP-Subscriber-API
   displayName: GroupSubscriberAPI
   context: /group/subscrber
-  version: 1.0
+  version: 1.0.0
   provider: admin
   lifeCycleStatus: PUBLISHED
   responseCachingEnabled: false
