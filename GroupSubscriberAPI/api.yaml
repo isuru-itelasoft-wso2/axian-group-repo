@@ -2,10 +2,10 @@ type: api
 version: v4.7.0
 data:
   id: 66758446-e40e-4852-9843-1f266ca38eae
-  name: GROUPSubscriber-API
+  name: GROUP-Subscriber-API
   displayName: Group-Subscriber-API
   context: /group/subscrber
-  version: v1.0.0
+  version: 1.0.0
   provider: admin
   lifeCycleStatus: PUBLISHED
   responseCachingEnabled: false
