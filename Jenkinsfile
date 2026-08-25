@@ -14,9 +14,10 @@ pipeline {
         stage('Check APICTL') {
             steps {
                 sh '''
+                    echo "USER=$(whoami)"
+                    echo "HOME=$HOME"
                     echo "APICTL_HOME=$APICTL_HOME"
                     echo "PATH=$PATH"
-
                     which apictl
                     apictl version
                 '''
