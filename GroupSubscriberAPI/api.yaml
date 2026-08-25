@@ -46,6 +46,7 @@ data:
   accessControlRoles: []
   businessInformation:
     businessOwner: John Doe
+    technicalOwner: Isuru Wijesundara
   corsConfiguration:
     corsConfigurationEnabled: false
     accessControlAllowOrigins:
