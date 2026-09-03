@@ -1,8 +1,8 @@
 type: api
 version: v4.7.0
 data:
-  name: CRMCustomerAPI
-  context: /crm
+  name: ProvisioningAPI
+  context: /provisioning
   version: "1.0"
   provider: admin
   lifeCycleStatus: PUBLISHED
@@ -13,12 +13,6 @@ data:
   transport:
   - http
   - https
-  policies:
-  - Advanced
-  - Gold
-  - Standard
-  authorizationHeader: Authorization
-  visibility: PUBLIC
   advertiseInfo:
     advertised: false
     apiOwner: admin
@@ -26,6 +20,12 @@ data:
   securityScheme:
   - oauth_basic_auth_api_key_mandatory
   - oauth2
+  policies:
+  - Advanced
+  - Gold
+  - Standard
+  authorizationHeader: Authorization
+  visibility: PUBLIC
   corsConfiguration:
     corsConfigurationEnabled: true
     accessControlAllowOrigins:
@@ -47,8 +47,8 @@ data:
   endpointConfig:
     endpoint_type: http
     production_endpoints:
-      url: https://6a99b1459a7ec1b817d1d6b6.mockapi.io
+      url: https://6a99b8c39a7ec1b817d1e363.mockapi.io
     sandbox_endpoints:
-      url: https://6a99b1459a7ec1b817d1d6b6.mockapi.io
+      url: https://6a99b8c39a7ec1b817d1e363.mockapi.io
   endpointImplementationType: ENDPOINT
   websubSubscriptionConfiguration: null
