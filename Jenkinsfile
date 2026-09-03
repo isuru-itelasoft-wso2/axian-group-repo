@@ -10,7 +10,7 @@ pipeline {
         /*
          * WSO2 API-M Publisher REST API
          */
-        APIM_PUBLISHER_URL = "https://group-apim.example.com:9443"
+        APIM_PUBLISHER_URL = "https://13.60.222.145:9443"
     }
 
     stages {
