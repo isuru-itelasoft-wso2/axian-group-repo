@@ -6,11 +6,6 @@ pipeline {
         APIM_ENV = "group"
         APICTL_HOME = "/opt/wso2/apictl"
         PATH = "/opt/wso2/apictl:${env.PATH}"
-
-        /*
-         * WSO2 API-M Publisher REST API
-         */
-        APIM_PUBLISHER_URL = "https://group-apim.example.com:9443"
     }
 
     stages {
@@ -53,7 +48,6 @@ pipeline {
          */
         stage('Checkout') {
             steps {
-
                 checkout scm
 
                 sh '''
@@ -81,11 +75,20 @@ pipeline {
         /*
          * ============================================================
          * 3. DETECT CHANGED APIs
+         *
+         * Example:
+         *
+         * TigoCustomerAPI/api.yaml
+         *
+         * becomes:
+         *
+         * TigoCustomerAPI
+         *
+         * Only those APIs will be validated and deployed.
          * ============================================================
          */
         stage('Detect Changed APIs') {
             steps {
-
                 script {
 
                     echo "========================================"
@@ -93,7 +96,9 @@ pipeline {
                     echo "========================================"
 
                     /*
-                     * Determine previous commit.
+                     * Determine the previous commit.
+                     *
+                     * In a normal Jenkins checkout HEAD~1 is available.
                      */
                     def changedFiles = sh(
                         script: '''
@@ -101,7 +106,6 @@ pipeline {
                         ''',
                         returnStdout: true
                     ).trim()
-
 
                     echo ""
                     echo "Changed files:"
@@ -118,6 +122,16 @@ pipeline {
 
                     /*
                      * Extract API project names.
+                     *
+                     * Any file directly inside an API directory
+                     * is considered part of that API.
+                     *
+                     * Example:
+                     *
+                     * TigoCustomerAPI/api.yaml
+                     * TigoCustomerAPI/metadata.yaml
+                     *
+                     * => TigoCustomerAPI
                      */
                     def apiProjects = []
 
@@ -136,9 +150,7 @@ pipeline {
                              * Ignore repository-level files.
                              */
                             if (!file.contains("/")) {
-
                                 echo "Ignoring repository-level file: ${file}"
-
                                 return
                             }
 
@@ -152,7 +164,6 @@ pipeline {
 
                                 def apiProject = parts[0]
 
-
                                 /*
                                  * Ignore common non-API directories.
                                  */
@@ -162,29 +173,25 @@ pipeline {
                                     apiProject == "scripts" ||
                                     apiProject == "config"
                                 ) {
-
                                     echo "Ignoring non-API directory: ${apiProject}"
-
                                     return
                                 }
 
 
                                 /*
-                                 * Verify directory exists.
+                                 * Verify the directory actually exists.
                                  */
                                 if (!fileExists(apiProject)) {
-
                                     echo "Ignoring unknown directory: ${apiProject}"
-
                                     return
                                 }
 
 
                                 /*
-                                 * Avoid duplicates.
+                                 * Avoid duplicates when multiple files
+                                 * inside the same API changed.
                                  */
                                 if (!apiProjects.contains(apiProject)) {
-
                                     apiProjects.add(apiProject)
                                 }
                             }
@@ -193,7 +200,7 @@ pipeline {
 
 
                     /*
-                     * Fail if no API changed.
+                     * Fail if no API was changed.
                      */
                     if (apiProjects.isEmpty()) {
 
@@ -201,9 +208,7 @@ pipeline {
                         echo "========================================"
                         echo "NO API CHANGES DETECTED"
                         echo "========================================"
-
                         echo "No API will be deployed."
-
                         echo "========================================"
 
                         error(
@@ -214,13 +219,13 @@ pipeline {
 
 
                     /*
-                     * Sort APIs.
+                     * Sort APIs for predictable execution order.
                      */
                     apiProjects.sort()
 
 
                     /*
-                     * Store list for subsequent stages.
+                     * Store the list for subsequent stages.
                      */
                     env.API_PROJECTS = apiProjects.join(",")
 
@@ -231,13 +236,11 @@ pipeline {
                     echo "========================================"
 
                     apiProjects.each { apiProject ->
-
                         echo "  -> ${apiProject}"
                     }
 
                     echo ""
                     echo "Total APIs to process: ${apiProjects.size()}"
-
                     echo "========================================"
                 }
             }
@@ -285,25 +288,37 @@ pipeline {
         /*
          * ============================================================
          * 5. GOVERNANCE GATE
+         *
+         * Each changed API is validated independently.
+         *
+         * If ANY changed API contains ERROR violations,
+         * the complete deployment is blocked.
+         *
+         * Example:
+         *
+         * Customer API  -> PASS
+         * Payment API   -> FAIL
+         * Account API   -> PASS
+         *
+         * Result:
+         *
+         * DEPLOYMENT BLOCKED
+         *
          * ============================================================
          */
         stage('Governance Gate') {
             steps {
-
                 script {
 
                     def apiProjects = env.API_PROJECTS.split(",")
 
                     def failedApis = []
-
                     def passedApis = []
-
 
                     echo ""
                     echo "========================================"
                     echo "GOVERNANCE GATE"
                     echo "========================================"
-
 
                     apiProjects.each { apiProject ->
 
@@ -314,7 +329,7 @@ pipeline {
 
 
                         /*
-                         * Make sure API project exists.
+                         * Make sure the API project still exists.
                          */
                         if (!fileExists(apiProject)) {
 
@@ -328,6 +343,9 @@ pipeline {
 
                         /*
                          * Run APIM dry-run validation.
+                         *
+                         * The command output is captured so that
+                         * governance violations can be evaluated.
                          */
                         def governanceOutput = sh(
                             script: """
@@ -347,9 +365,7 @@ pipeline {
 
                         echo ""
                         echo "========== GOVERNANCE RESULT =========="
-
                         echo governanceOutput
-
                         echo "========================================"
 
 
@@ -381,45 +397,32 @@ pipeline {
 
 
                     /*
-                     * Print governance summary.
+                     * Print complete governance summary.
                      */
                     echo ""
                     echo "========================================"
                     echo "GOVERNANCE SUMMARY"
                     echo "========================================"
 
-
                     echo ""
                     echo "PASSED APIs:"
-
                     if (passedApis.isEmpty()) {
-
                         echo "  None"
-
                     } else {
-
                         passedApis.each {
-
                             echo "  ✅ ${it}"
                         }
                     }
 
-
                     echo ""
                     echo "FAILED APIs:"
-
                     if (failedApis.isEmpty()) {
-
                         echo "  None"
-
                     } else {
-
                         failedApis.each {
-
                             echo "  ❌ ${it}"
                         }
                     }
-
 
                     echo ""
                     echo "========================================"
@@ -451,11 +454,16 @@ pipeline {
         /*
          * ============================================================
          * 6. DEPLOY CHANGED APIs
+         *
+         * IMPORTANT:
+         *
+         * Only APIs stored in API_PROJECTS are deployed.
+         *
+         * Unchanged APIs are NOT deployed.
          * ============================================================
          */
         stage('Deploy Changed APIs') {
             steps {
-
                 script {
 
                     def apiProjects = env.API_PROJECTS.split(",")
@@ -496,361 +504,6 @@ pipeline {
                 }
             }
         }
-
-
-        /*
-         * ============================================================
-         * 7. CONFIGURE API MONETIZATION
-         *
-         * For every deployed API:
-         *
-         * 1. Read API name from api.yaml
-         * 2. Find API ID using Publisher REST API
-         * 3. Check monetization status
-         * 4. If already enabled -> skip
-         * 5. If disabled -> enable monetization
-         * 6. Set ConnectedAccountKey
-         *
-         * ============================================================
-         */
-        stage('Configure Monetization') {
-
-            steps {
-
-                script {
-
-                    def apiProjects = env.API_PROJECTS.split(",")
-
-
-                    echo ""
-                    echo "========================================"
-                    echo "CONFIGURING API MONETIZATION"
-                    echo "========================================"
-
-
-                    /*
-                     * APIM credentials
-                     *
-                     * Stripe ConnectedAccountKey should be stored
-                     * as a Jenkins Secret Text credential.
-                     */
-                    withCredentials([
-
-                        usernamePassword(
-                            credentialsId: 'cicd-apictl',
-                            usernameVariable: 'APIM_USER',
-                            passwordVariable: 'APIM_PASS'
-                        ),
-
-                        string(
-                            credentialsId: 'acct_1QMR1bJvWh0wWSRf',
-                            variable: 'CONNECTED_ACCOUNT_KEY'
-                        )
-
-                    ]) {
-
-
-                        apiProjects.each { apiProject ->
-
-
-                            echo ""
-                            echo "----------------------------------------"
-                            echo "MONETIZATION: ${apiProject}"
-                            echo "----------------------------------------"
-
-
-                            /*
-                             * ==================================================
-                             * 1. READ API NAME FROM api.yaml
-                             * ==================================================
-                             *
-                             * Expected:
-                             *
-                             * data:
-                             *   name: Charging API
-                             *
-                             */
-                            def apiName = sh(
-
-                                script: """
-
-                                    python3 - <<'PY'
-
-import yaml
-
-with open("${apiProject}/api.yaml", "r") as f:
-
-    data = yaml.safe_load(f)
-
-api_data = data.get("data", data)
-
-api_name = api_data.get("name", "")
-
-print(api_name)
-
-PY
-
-                                """,
-
-                                returnStdout: true
-
-                            ).trim()
-
-
-                            if (!apiName) {
-
-                                error(
-                                    "Unable to determine API name from " +
-                                    "${apiProject}/api.yaml"
-                                )
-                            }
-
-
-                            echo "API Name: ${apiName}"
-
-
-                            /*
-                             * ==================================================
-                             * 2. FIND API ID
-                             * ==================================================
-                             *
-                             * GET
-                             *
-                             * /api/am/publisher/v4/apis
-                             *
-                             * ?query=name:<API_NAME>
-                             *
-                             */
-                            def apiSearchFile =
-                                "${apiProject}/api-search-response.json"
-
-
-                            sh """
-
-                                curl -ksS \\
-                                    -u "\$APIM_USER:\$APIM_PASS" \\
-                                    --get \\
-                                    --data-urlencode "query=name:${apiName}" \\
-                                    "${APIM_PUBLISHER_URL}/api/am/publisher/v4/apis" \\
-                                    -o "${apiSearchFile}"
-
-                            """
-
-
-                            /*
-                             * Extract API ID.
-                             */
-                            def apiId = sh(
-
-                                script: """
-
-                                    python3 - <<'PY'
-
-import json
-
-with open("${apiSearchFile}", "r") as f:
-
-    data = json.load(f)
-
-apis = data.get("list", [])
-
-if not apis:
-
-    raise SystemExit(1)
-
-print(apis[0].get("id", ""))
-
-PY
-
-                                """,
-
-                                returnStdout: true
-
-                            ).trim()
-
-
-                            if (!apiId) {
-
-                                error(
-                                    "API ID could not be found for API: " +
-                                    "${apiName}"
-                                )
-                            }
-
-
-                            echo "API ID: ${apiId}"
-
-
-                            /*
-                             * ==================================================
-                             * 3. CHECK MONETIZATION STATUS
-                             * ==================================================
-                             *
-                             * GET
-                             *
-                             * /apis/{api_id}/monetization
-                             */
-                            def monetizationFile =
-                                "${apiProject}/monetization-response.json"
-
-
-                            sh """
-
-                                curl -ksS \\
-                                    -u "\$APIM_USER:\$APIM_PASS" \\
-                                    "${APIM_PUBLISHER_URL}/api/am/publisher/v4/apis/${apiId}/monetization" \\
-                                    -o "${monetizationFile}"
-
-                            """
-
-
-                            echo ""
-                            echo "Monetization response:"
-                            echo "----------------------------------------"
-
-                            sh """
-
-                                cat "${monetizationFile}"
-
-                            """
-
-                            echo "----------------------------------------"
-
-
-                            /*
-                             * Extract enabled flag.
-                             */
-                            def monetizationEnabled = sh(
-
-                                script: """
-
-                                    python3 - <<'PY'
-
-import json
-
-with open("${monetizationFile}", "r") as f:
-
-    data = json.load(f)
-
-print(str(data.get("enabled", False)).lower())
-
-PY
-
-                                """,
-
-                                returnStdout: true
-
-                            ).trim()
-
-
-                            echo ""
-                            echo "Monetization enabled: ${monetizationEnabled}"
-
-
-                            /*
-                             * ==================================================
-                             * 4. ENABLE MONETIZATION IF REQUIRED
-                             * ==================================================
-                             */
-                            if (monetizationEnabled == "true") {
-
-
-                                echo ""
-                                echo "✅ Monetization already enabled"
-                                echo "Skipping monetization configuration."
-
-
-                            } else {
-
-
-                                echo ""
-                                echo "Monetization is NOT enabled."
-                                echo "Enabling monetization..."
-
-
-                                /*
-                                 * ==================================================
-                                 * 5. CREATE MONETIZATION PAYLOAD
-                                 * ==================================================
-                                 *
-                                 * ConnectedAccountKey comes from Jenkins
-                                 * Secret Text credential.
-                                 */
-                                def monetizationPayload =
-                                    """{
-  "enabled": true,
-  "properties": {
-    "ConnectedAccountKey": "${env.CONNECTED_ACCOUNT_KEY}"
-  }
-}"""
-
-
-                                writeFile(
-
-                                    file:
-                                        "${apiProject}/monetization.json",
-
-                                    text:
-                                        monetizationPayload
-
-                                )
-
-
-                                /*
-                                 * ==================================================
-                                 * 6. POST /monetize
-                                 * ==================================================
-                                 */
-                                sh """
-
-                                    curl -ksS --fail-with-body \\
-                                        -u "\$APIM_USER:\$APIM_PASS" \\
-                                        -X POST \\
-                                        -H "Content-Type: application/json" \\
-                                        --data-binary "@${apiProject}/monetization.json" \\
-                                        "${APIM_PUBLISHER_URL}/api/am/publisher/v4/apis/${apiId}/monetize"
-
-                                """
-
-
-                                echo ""
-                                echo "✅ Monetization enabled"
-                                echo "API: ${apiName}"
-                                echo "API ID: ${apiId}"
-
-                            }
-
-
-                            /*
-                             * ==================================================
-                             * 7. CLEAN TEMPORARY FILES
-                             * ==================================================
-                             */
-                            sh """
-
-                                rm -f \
-                                    "${apiProject}/api-search-response.json" \
-                                    "${apiProject}/monetization-response.json" \
-                                    "${apiProject}/monetization.json"
-
-                            """
-
-
-                            echo ""
-                            echo "----------------------------------------"
-                            echo "MONETIZATION COMPLETED: ${apiProject}"
-                            echo "----------------------------------------"
-                        }
-                    }
-
-
-                    echo ""
-                    echo "========================================"
-                    echo "ALL MONETIZATION CONFIGURATION COMPLETED"
-                    echo "========================================"
-                }
-            }
-        }
     }
 
 
@@ -859,6 +512,7 @@ PY
      * POST BUILD
      * ================================================================
      */
+
     post {
 
         success {
@@ -868,34 +522,25 @@ PY
             echo "       API CI/CD SUCCESS"
             echo "========================================"
 
-
             echo ""
             echo "APIs processed:"
 
             script {
-
                 if (env.API_PROJECTS) {
-
                     echo "${env.API_PROJECTS}"
-
                 } else {
-
                     echo "None"
                 }
             }
 
-
             echo ""
             echo "Governance: PASSED"
             echo "Deployment: COMPLETED"
-            echo "Monetization: CONFIGURED"
-
             echo ""
             echo "Only changed APIs were deployed."
 
             echo "========================================"
         }
-
 
         failure {
 
@@ -904,29 +549,24 @@ PY
             echo "       API CI/CD FAILED"
             echo "========================================"
 
-
             echo ""
             echo "APIs detected:"
 
             script {
-
                 if (env.API_PROJECTS) {
-
                     echo "${env.API_PROJECTS}"
-
                 } else {
-
                     echo "No API list available."
                 }
             }
 
-
             echo ""
-            echo "Governance / Deployment / Monetization: FAILED"
-            echo "API deployment or monetization configuration failed."
+            echo "Governance / Deployment: FAILED"
+            echo "API deployment was blocked or failed."
 
             echo ""
             echo "========================================"
         }
     }
 }
+
