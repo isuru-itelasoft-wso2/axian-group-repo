@@ -14,7 +14,9 @@ data:
   - http
   - https
   policies:
-  - Unlimited
+  - Advanced
+  - Gold
+  - Standerd
   authorizationHeader: Authorization
   visibility: PUBLIC
   advertiseInfo:
