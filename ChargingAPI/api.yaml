@@ -16,7 +16,6 @@ data:
   policies:
   - Advanced
   - Gold
-  - Standerd
   authorizationHeader: Authorization
   visibility: PUBLIC
   advertiseInfo:
