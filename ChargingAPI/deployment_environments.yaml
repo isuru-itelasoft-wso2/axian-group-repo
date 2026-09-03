@@ -3,4 +3,4 @@ version: v4.7.0
 data:
  -
    displayOnDevportal: true
-   deploymentEnvironment: Default
+   deploymentEnvironment: Tigo Partner Gateway
