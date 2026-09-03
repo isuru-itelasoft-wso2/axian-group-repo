@@ -543,7 +543,7 @@ pipeline {
                         ),
 
                         string(
-                            credentialsId: 'acct_1QMR1bJvWh0wWSRf',
+                            credentialsId: 'stripe-connected-account-key',
                             variable: 'CONNECTED_ACCOUNT_KEY'
                         )
 
