@@ -4,3 +4,6 @@ data:
  -
    displayOnDevportal: true
    deploymentEnvironment: Default
+ - 
+   displayOnDevportal: true
+   deploymentEnvironment: Tigo Partner Gateway
