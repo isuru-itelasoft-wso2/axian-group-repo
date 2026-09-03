@@ -22,7 +22,7 @@ data:
   advertiseInfo:
     advertised: false
     apiOwner: admin
-    vendor: WSO2
+    vendor: WSO2-APIM
   securityScheme:
    - oauth_basic_auth_api_key_mandatory
    - oauth2
