@@ -22,7 +22,7 @@ data:
   advertiseInfo:
     advertised: false
     apiOwner: admin
-    vendor: Axian
+    vendor: WSO2
   securityScheme:
    - oauth_basic_auth_api_key_mandatory
    - oauth2
