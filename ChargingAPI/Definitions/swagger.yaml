@@ -72,14 +72,14 @@ x-wso2-cors:
 x-wso2-production-endpoints:
   type: http
   urls:
-  - https://6a99aaad53c0481726b9878d.mockapi.io
+  - https://6a99aaad53c0481726b9878d.mockapi.io/charging
 x-wso2-response-cache:
   cacheTimeoutInSeconds: 300
   enabled: false
 x-wso2-sandbox-endpoints:
   type: http
   urls:
-  - https://6a99aaad53c0481726b9878d.mockapi.io
+  - https://6a99aaad53c0481726b9878d.mockapi.io/charging
 x-wso2-transports:
 - http
 - https
