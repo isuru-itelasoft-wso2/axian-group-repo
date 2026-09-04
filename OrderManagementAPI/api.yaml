@@ -14,7 +14,6 @@ data:
   - http
   - https
   policies:
-  - Advanced
   - Gold
   authorizationHeader: Authorization
   visibility: PUBLIC

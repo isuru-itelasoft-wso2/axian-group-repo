@@ -21,7 +21,6 @@ data:
   - oauth_basic_auth_api_key_mandatory
   - oauth2
   policies:
-  - Advanced
   - Gold
   - Unlimited
   authorizationHeader: Authorization
