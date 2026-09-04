@@ -23,7 +23,6 @@ data:
   policies:
   - Advanced
   - Gold
-  - Standard
   - Unlimited
   authorizationHeader: Authorization
   visibility: PUBLIC
