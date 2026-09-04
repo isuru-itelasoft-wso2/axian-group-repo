@@ -17,7 +17,6 @@ data:
   - Advanced
   - Gold
   - Standard
-  - Unlimited
   authorizationHeader: Authorization
   visibility: PUBLIC
   advertiseInfo:
