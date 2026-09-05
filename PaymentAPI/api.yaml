@@ -1,0 +1,45 @@
+type: api
+version: v4.7.0
+data:
+  name: PaymentAPI
+  context: /payment
+  version: "1.0"
+  provider: admin
+  lifeCycleStatus: CREATED
+  isDefaultVersion: true
+  isRevision: false
+  revisionId: 0
+  type: HTTP
+  transport:
+  - http
+  - https
+  policies:
+  - Unlimited
+  authorizationHeader: Authorization
+  visibility: PUBLIC
+  corsConfiguration:
+    corsConfigurationEnabled: true
+    accessControlAllowOrigins:
+    - '*'
+    accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+    accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+  endpointConfig:
+    endpoint_type: http
+    production_endpoints:
+      url: https://6a99af609a7ec1b817d1d3a5.mockapi.io/
+    sandbox_endpoints:
+      url: https://6a99af609a7ec1b817d1d3a5.mockapi.io/
+  endpointImplementationType: ENDPOINT
+  websubSubscriptionConfiguration: null
